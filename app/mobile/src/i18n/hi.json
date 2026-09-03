@@ -1,0 +1,36 @@
+{
+  "common": {
+    "continue": "जारी रखें",
+    "cancel": "रद्द करें",
+    "loading": "लोड हो रहा है...",
+    "save": "सहेजें",
+    "submit": "जमा करें",
+    "retry": "पुनः प्रयास करें"
+  },
+  "auth": {
+    "chooseLanguage": "अपनी भाषा चुनें",
+    "enterPhone": "अपना फ़ोन नंबर दर्ज करें",
+    "sendOtp": "OTP भेजें",
+    "enterOtp": "फोन पर भेजा गया OTP दर्ज करें",
+    "verify": "सत्यापित करें"
+  },
+  "home": {
+    "title": "हस्तनिर्मित शिल्प खोजें",
+    "search": "उत्पाद खोजें"
+  },
+  "seller": {
+    "dashboard": "विक्रेता डैशबोर्ड",
+    "addProduct": "उत्पाद जोड़ें",
+    "aiStudio": "AI स्टूडियो",
+    "recordVoice": "आवाज़ में विवरण रिकॉर्ड करें",
+    "suggestedPrice": "सुझाई गई कीमत"
+  },
+  "chat": {
+    "typeMessage": "संदेश लिखें",
+    "hold_to_record": "रिकॉर्ड करने के लिए दबाए रखें"
+  },
+  "orders": {
+    "myOrders": "मेरे ऑर्डर",
+    "status": "स्थिति"
+  }
+}

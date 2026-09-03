@@ -1,0 +1,36 @@
+{
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "save": "Save",
+    "submit": "Submit",
+    "retry": "Retry"
+  },
+  "auth": {
+    "chooseLanguage": "Choose your language",
+    "enterPhone": "Enter your phone number",
+    "sendOtp": "Send OTP",
+    "enterOtp": "Enter the OTP sent to your phone",
+    "verify": "Verify"
+  },
+  "home": {
+    "title": "Discover handmade crafts",
+    "search": "Search products"
+  },
+  "seller": {
+    "dashboard": "Seller Dashboard",
+    "addProduct": "Add Product",
+    "aiStudio": "AI Studio",
+    "recordVoice": "Record a voice description",
+    "suggestedPrice": "Suggested price"
+  },
+  "chat": {
+    "typeMessage": "Type a message",
+    "hold_to_record": "Hold to record"
+  },
+  "orders": {
+    "myOrders": "My Orders",
+    "status": "Status"
+  }
+}
