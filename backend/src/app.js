@@ -10,7 +10,7 @@ const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
-
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(
   cors({
@@ -27,7 +27,9 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300 });
 app.use('/api', limiter);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', env: env.NODE_ENV }));
-
+app.get('/', (req, res) =>
+  res.json({ success: true, message: 'AI Artisan Marketplace API is running', docs: '/api' })
+);
 app.use('/api', routes);
 
 app.use(notFound);
