@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Artisan Marketplace",
+    "slug": "artisan-marketplace",
+    "scheme": "artisanmarketplace",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#F5E9DA"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": { "supportsTablet": true },
+    "android": {
+      "adaptiveIcon": { "backgroundColor": "#F5E9DA" },
+      "package": "com.artisanmarketplace.app"
+    },
+    "plugins": ["expo-router"],
+    "extra": {
+      "apiUrl": "http://localhost:5000/api"
+    }
+  }
+}

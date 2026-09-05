@@ -1,0 +1,16 @@
+{
+  "name": "artisan-marketplace",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AI-driven market linkage and smart cataloging mobile application for marginalized artisans",
+  "workspaces": [
+    "backend",
+    "admin"
+  ],
+  "scripts": {
+    "backend:dev": "npm --prefix backend run dev",
+    "admin:dev": "npm --prefix admin run dev",
+    "mobile:start": "npm --prefix mobile run start"
+  },
+  "license": "UNLICENSED"
+}

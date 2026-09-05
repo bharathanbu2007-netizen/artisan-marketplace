@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.local
+dist/
+build/
+.expo/
+.expo-shared/
+*.log
+.DS_Store
+coverage/
+.vscode/
+android/
+ios/
