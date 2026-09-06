@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useChatStore } from '../../store/chatStore';
@@ -8,12 +8,19 @@ import { colors, radius, spacing } from '../../constants/theme';
 export default function ConversationsList() {
   const { conversations, fetchConversations } = useChatStore();
   const user = useAuthStore((s) => s.user);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { fetchConversations(); }, []);
+  useEffect(() => {
+    fetchConversations().catch((err) => {
+      console.error('[ConversationsList] load failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load conversations.');
+    });
+  }, []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Messages</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <FlatList
         data={conversations}
         keyExtractor={(item) => item._id}
@@ -45,4 +52,5 @@ const styles = StyleSheet.create({
   avatarText: { fontWeight: '700', color: colors.primaryDark },
   name: { fontWeight: '700', color: colors.text },
   lastMessage: { color: colors.muted, fontSize: 13 },
+  errorText: { textAlign: 'center', color: '#B3261E', marginBottom: spacing.sm, fontWeight: '600' },
 });

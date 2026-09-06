@@ -5,14 +5,21 @@ import { colors, radius, spacing } from '../../constants/theme';
 
 export default function BuyerOrders() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/orders').then(({ data }) => setOrders(data.data.orders));
+    api.get('/orders')
+      .then(({ data }) => setOrders(data.data.orders))
+      .catch((err) => {
+        console.error('[BuyerOrders] load failed:', err);
+        setError(err?.response?.data?.message || err?.message || 'Failed to load orders.');
+      });
   }, []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Your Orders</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <FlatList
         data={orders}
         keyExtractor={(item) => item._id}
@@ -36,4 +43,5 @@ const styles = StyleSheet.create({
   orderId: { fontWeight: '700', color: colors.text },
   status: { color: colors.primaryDark, marginTop: 2 },
   total: { marginTop: 4, fontWeight: '600' },
+  errorText: { textAlign: 'center', color: '#B3261E', marginBottom: spacing.sm, fontWeight: '600' },
 });

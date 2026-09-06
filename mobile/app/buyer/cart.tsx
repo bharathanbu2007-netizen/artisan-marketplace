@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useCartStore } from '../../store/cartStore';
@@ -7,18 +7,36 @@ import { colors, radius, spacing } from '../../constants/theme';
 
 export default function CartScreen() {
   const { items, fetchCart, removeFromCart, total } = useCartStore();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { fetchCart(); }, []);
 
   const checkout = async () => {
-    const orderItems = items.map((i) => ({ productId: i.productId, quantity: i.quantity }));
-    await api.post('/orders', { items: orderItems, shippingAddress: {} });
-    router.push('/buyer/orders');
+    setError(null);
+    try {
+      const orderItems = items.map((i) => ({ productId: i.productId, quantity: i.quantity }));
+      await api.post('/orders', { items: orderItems, shippingAddress: {} });
+      router.push('/buyer/orders');
+    } catch (err: any) {
+      console.error('[Cart] checkout failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Checkout failed. Try again.');
+    }
+  };
+
+  const handleRemove = async (productId: string) => {
+    setError(null);
+    try {
+      await removeFromCart(productId);
+    } catch (err: any) {
+      console.error('[Cart] remove failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to remove item.');
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Your Cart</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <FlatList
         data={items}
         keyExtractor={(item) => item.productId}
@@ -31,7 +49,7 @@ export default function CartScreen() {
               <Text style={styles.itemTitle}>{item.product?.title}</Text>
               <Text style={styles.itemPrice}>₹{item.product?.pricing?.manufacturerPrice} × {item.quantity}</Text>
             </View>
-            <TouchableOpacity onPress={() => removeFromCart(item.productId)}>
+            <TouchableOpacity onPress={() => handleRemove(item.productId)}>
               <Text style={styles.remove}>Remove</Text>
             </TouchableOpacity>
           </View>
@@ -59,6 +77,7 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
   itemPrice: { fontSize: 13, color: colors.muted },
   remove: { color: colors.danger, fontSize: 13 },
+  errorText: { textAlign: 'center', color: '#B3261E', marginBottom: spacing.sm, fontWeight: '600' },
   footer: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
   total: { fontSize: 16, fontWeight: '700', marginBottom: spacing.sm },
   checkoutBtn: { backgroundColor: colors.primary, borderRadius: radius.md, padding: 14, alignItems: 'center' },

@@ -5,9 +5,15 @@ import { colors, radius, spacing } from '../../constants/theme';
 
 export default function Earnings() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/orders').then(({ data }) => setOrders(data.data.orders));
+    api.get('/orders')
+      .then(({ data }) => setOrders(data.data.orders))
+      .catch((err) => {
+        console.error('[Earnings] load failed:', err);
+        setError(err?.response?.data?.message || err?.message || 'Failed to load earnings.');
+      });
   }, []);
 
   const total = orders.filter((o) => o.status === 'delivered').reduce((sum, o) => sum + o.totalAmount, 0);
@@ -16,6 +22,7 @@ export default function Earnings() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Earnings</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <View style={styles.card}>
         <Text style={styles.label}>Delivered (paid out)</Text>
         <Text style={styles.value}>₹{total}</Text>
@@ -34,4 +41,5 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
   label: { color: colors.muted, marginBottom: 6 },
   value: { fontSize: 22, fontWeight: '800', color: colors.primaryDark },
+  errorText: { textAlign: 'center', color: '#B3261E', marginBottom: spacing.sm, fontWeight: '600' },
 });

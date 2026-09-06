@@ -9,19 +9,43 @@ import { colors, radius, spacing } from '../../../constants/theme';
 export default function ProductDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [product, setProduct] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const addToCart = useCartStore((s) => s.addToCart);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    api.get(`/products/${id}`).then(({ data }) => setProduct(data.data.product));
+    api.get(`/products/${id}`)
+      .then(({ data }) => setProduct(data.data.product))
+      .catch((err) => {
+        console.error('[ProductDetail] load failed:', err);
+        setError(err?.response?.data?.message || err?.message || 'Failed to load product.');
+      });
   }, [id]);
 
   const messageArtisan = async () => {
-    const artisanUserId = product.artisanId?.userId?._id || product.artisanId?.userId;
-    const { data } = await api.post('/conversations', { otherUserId: artisanUserId, productId: product._id });
-    router.push(`/chat/${data.data.conversation._id}`);
+    setError(null);
+    try {
+      const artisanUserId = product.artisanId?.userId?._id || product.artisanId?.userId;
+      const { data } = await api.post('/conversations', { otherUserId: artisanUserId, productId: product._id });
+      router.push(`/chat/${data.data.conversation._id}`);
+    } catch (err: any) {
+      console.error('[ProductDetail] messageArtisan failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Could not start conversation.');
+    }
   };
 
+  const handleAddToCart = async () => {
+    setError(null);
+    try {
+      await addToCart(product._id, 1);
+      router.push('/buyer/cart');
+    } catch (err: any) {
+      console.error('[ProductDetail] addToCart failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Could not add to cart.');
+    }
+  };
+
+  if (error && !product) return <View style={styles.container}><Text style={styles.errorText}>{error}</Text></View>;
   if (!product) return <View style={styles.container} />;
 
   return (
@@ -34,18 +58,13 @@ export default function ProductDetail() {
           {product.artisanId?.businessName} {product.artisanId?.verification?.status === 'verified' ? '✓ Verified' : ''}
         </Text>
         <Text style={styles.description}>{product.description?.english}</Text>
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.secondaryBtn} onPress={messageArtisan}>
             <Text style={styles.secondaryBtnText}>Message Artisan</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={async () => {
-              await addToCart(product._id, 1);
-              router.push('/buyer/cart');
-            }}
-          >
+          <TouchableOpacity style={styles.primaryBtn} onPress={handleAddToCart}>
             <Text style={styles.primaryBtnText}>Add to Cart</Text>
           </TouchableOpacity>
         </View>
@@ -66,4 +85,5 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: colors.white, fontWeight: '700' },
   secondaryBtn: { flex: 1, borderWidth: 1, borderColor: colors.primary, borderRadius: radius.md, padding: 14, alignItems: 'center' },
   secondaryBtnText: { color: colors.primaryDark, fontWeight: '700' },
+  errorText: { textAlign: 'center', color: '#B3261E', marginVertical: spacing.sm, fontWeight: '600' },
 });

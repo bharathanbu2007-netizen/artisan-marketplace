@@ -7,24 +7,38 @@ const STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
 export default function ArtisanOrders() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
-    const { data } = await api.get('/orders');
-    setOrders(data.data.orders);
+    setError(null);
+    try {
+      const { data } = await api.get('/orders');
+      setOrders(data.data.orders);
+    } catch (err: any) {
+      console.error('[ArtisanOrders] load failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load orders.');
+    }
   };
 
   useEffect(() => { load(); }, []);
 
   const advance = async (id: string, current: string) => {
-    const idx = STATUSES.indexOf(current);
-    const next = STATUSES[Math.min(idx + 1, STATUSES.length - 2)];
-    await api.patch(`/orders/${id}`, { status: next });
-    load();
+    setError(null);
+    try {
+      const idx = STATUSES.indexOf(current);
+      const next = STATUSES[Math.min(idx + 1, STATUSES.length - 2)];
+      await api.patch(`/orders/${id}`, { status: next });
+      load();
+    } catch (err: any) {
+      console.error('[ArtisanOrders] advance failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to update order status.');
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Orders</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <FlatList
         data={orders}
         keyExtractor={(item) => item._id}
@@ -53,4 +67,5 @@ const styles = StyleSheet.create({
   status: { color: colors.primaryDark, marginVertical: 4 },
   advanceBtn: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingVertical: 6, alignItems: 'center', marginTop: 4 },
   advanceText: { color: colors.white, fontSize: 12, fontWeight: '600' },
+  errorText: { textAlign: 'center', color: '#B3261E', marginBottom: spacing.sm, fontWeight: '600' },
 });

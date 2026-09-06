@@ -1,7 +1,30 @@
 const Product = require('../models/Product');
 const ArtisanProfile = require('../models/ArtisanProfile');
+const Category = require('../models/Category');
 const asyncHandler = require('../utils/asyncHandler');
 const { success, failure } = require('../utils/apiResponse');
+
+// The AI Cataloger produces a plain category NAME (e.g. "Handicrafts"), but
+// Product.category is a reference to a real Category document. This finds
+// a matching category by name (case-insensitive) or creates one on the fly,
+// so publishing never fails with a "cast to ObjectId" error just because the
+// AI suggested a category that doesn't exist yet.
+async function resolveCategoryId(categoryInput) {
+  if (!categoryInput) return undefined;
+
+  // Already a valid ObjectId (e.g. picked from a real dropdown) — use as-is.
+  if (/^[a-f\d]{24}$/i.test(categoryInput)) return categoryInput;
+
+  const name = String(categoryInput).trim();
+  if (!name) return undefined;
+
+  let category = await Category.findOne({ name: new RegExp(`^${name}$`, 'i') });
+  if (!category) {
+    const slug = name.toLowerCase().replace(/\s+/g, '-');
+    category = await Category.create({ name, slug });
+  }
+  return category._id;
+}
 
 // GET /api/products  (marketplace browse/search)
 const listProducts = asyncHandler(async (req, res) => {
@@ -27,6 +50,18 @@ const listProducts = asyncHandler(async (req, res) => {
   return success(res, { products, total, page: Number(page), limit: Number(limit) });
 });
 
+// GET /api/products/mine  (artisan's own products, ALL statuses — draft + published)
+const listMyProducts = asyncHandler(async (req, res) => {
+  const artisan = await ArtisanProfile.findOne({ userId: req.user._id });
+  if (!artisan) return failure(res, 'Artisan profile required', 403);
+
+  const products = await Product.find({ artisanId: artisan._id })
+    .populate('category', 'name slug')
+    .sort({ createdAt: -1 });
+
+  return success(res, { products, total: products.length });
+});
+
 // GET /api/products/:id
 const getProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true })
@@ -41,7 +76,14 @@ const createProduct = asyncHandler(async (req, res) => {
   const artisan = await ArtisanProfile.findOne({ userId: req.user._id });
   if (!artisan) return failure(res, 'Artisan profile required', 403);
 
-  const product = await Product.create({ ...req.body, artisanId: artisan._id, status: 'draft' });
+  const categoryId = await resolveCategoryId(req.body.category);
+
+  const product = await Product.create({
+    ...req.body,
+    category: categoryId,
+    artisanId: artisan._id,
+    status: 'draft',
+  });
   return success(res, { product }, 'Product created', 201);
 });
 
@@ -51,7 +93,10 @@ const updateProduct = asyncHandler(async (req, res) => {
   const product = await Product.findOne({ _id: req.params.id, artisanId: artisan?._id });
   if (!product) return failure(res, 'Product not found or not yours', 404);
 
-  Object.assign(product, req.body);
+  const updates = { ...req.body };
+  if (updates.category) updates.category = await resolveCategoryId(updates.category);
+
+  Object.assign(product, updates);
   await product.save();
   return success(res, { product }, 'Product updated');
 });
@@ -94,4 +139,4 @@ const deleteProduct = asyncHandler(async (req, res) => {
   return success(res, {}, 'Product archived');
 });
 
-module.exports = { listProducts, getProduct, createProduct, updateProduct, publishProduct, deleteProduct };
+module.exports = { listProducts, listMyProducts, getProduct, createProduct, updateProduct, publishProduct, deleteProduct };

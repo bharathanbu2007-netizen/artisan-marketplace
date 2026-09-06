@@ -4,10 +4,17 @@ import Navbar from '../components/Navbar';
 
 export default function Artisans() {
   const [artisans, setArtisans] = useState([]);
+  const [error, setError] = useState(null);
 
   const load = async () => {
-    const { data } = await api.get('/artisans');
-    setArtisans(data.data.artisans);
+    setError(null);
+    try {
+      const { data } = await api.get('/artisans');
+      setArtisans(data.data.artisans);
+    } catch (err) {
+      console.error('[Artisans] load failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load artisans.');
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -15,6 +22,7 @@ export default function Artisans() {
   return (
     <div>
       <Navbar title="Artisans" />
+      {error && <div className="error-text" style={{ marginBottom: 12 }}>{error}</div>}
       <div className="card">
         <table>
           <thead>

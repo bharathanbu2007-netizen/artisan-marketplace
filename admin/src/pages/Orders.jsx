@@ -4,22 +4,36 @@ import Navbar from '../components/Navbar';
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const [error, setError] = useState(null);
 
   const load = async () => {
-    const { data } = await api.get('/orders');
-    setOrders(data.data.orders);
+    setError(null);
+    try {
+      const { data } = await api.get('/orders');
+      setOrders(data.data.orders);
+    } catch (err) {
+      console.error('[Orders] load failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load orders.');
+    }
   };
 
   useEffect(() => { load(); }, []);
 
   const updateStatus = async (id, status) => {
-    await api.patch(`/orders/${id}`, { status });
-    load();
+    setError(null);
+    try {
+      await api.patch(`/orders/${id}`, { status });
+      load();
+    } catch (err) {
+      console.error('[Orders] updateStatus failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to update order.');
+    }
   };
 
   return (
     <div>
       <Navbar title="Orders" />
+      {error && <div className="error-text" style={{ marginBottom: 12 }}>{error}</div>}
       <div className="card">
         <table>
           <thead>

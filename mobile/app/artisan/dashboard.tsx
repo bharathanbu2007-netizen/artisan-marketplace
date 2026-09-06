@@ -8,11 +8,21 @@ import { colors, radius, spacing } from '../../constants/theme';
 export default function ArtisanDashboard() {
   const user = useAuthStore((s) => s.user);
   const [stats, setStats] = useState({ products: 0, orders: 0, rating: 0 });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/orders').then(({ data }) => {
-      setStats((prev) => ({ ...prev, orders: data.data.orders.length }));
-    });
+    Promise.all([api.get('/orders'), api.get('/products/mine')])
+      .then(([ordersRes, productsRes]) => {
+        setStats((prev) => ({
+          ...prev,
+          orders: ordersRes.data.data.orders.length,
+          products: productsRes.data.data.products.length,
+        }));
+      })
+      .catch((err) => {
+        console.error('[ArtisanDashboard] load failed:', err);
+        setError(err?.response?.data?.message || err?.message || 'Failed to load dashboard stats.');
+      });
   }, []);
 
   const actions = [
@@ -25,6 +35,7 @@ export default function ArtisanDashboard() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.md }}>
       <Text style={styles.greeting}>Welcome back, {user?.name?.split(' ')[0]}</Text>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <View style={styles.statsRow}>
         <View style={styles.statCard}><Text style={styles.statValue}>{stats.products}</Text><Text style={styles.statLabel}>Products</Text></View>
         <View style={styles.statCard}><Text style={styles.statValue}>{stats.orders}</Text><Text style={styles.statLabel}>Orders</Text></View>
@@ -49,4 +60,5 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, color: colors.muted },
   actionCard: { backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
   actionText: { fontSize: 15, fontWeight: '600', color: colors.text },
+  errorText: { textAlign: 'center', color: '#B3261E', marginBottom: spacing.sm, fontWeight: '600' },
 });

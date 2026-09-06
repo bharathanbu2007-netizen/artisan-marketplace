@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   listProducts,
+  listMyProducts,
   getProduct,
   createProduct,
   updateProduct,
@@ -14,6 +15,7 @@ const { validateBody } = require('../middleware/validate');
 const router = express.Router();
 
 router.get('/', listProducts);
+router.get('/mine', protect, authorize('artisan'), listMyProducts);
 router.get('/:id', getProduct);
 router.post('/', protect, authorize('artisan'), validateBody(['title']), createProduct);
 router.put('/:id/update', protect, authorize('artisan'), updateProduct);

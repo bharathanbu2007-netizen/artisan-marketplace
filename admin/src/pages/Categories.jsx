@@ -5,10 +5,17 @@ import Navbar from '../components/Navbar';
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
+  const [error, setError] = useState(null);
 
   const load = async () => {
-    const { data } = await api.get('/categories');
-    setCategories(data.data.categories);
+    setError(null);
+    try {
+      const { data } = await api.get('/categories');
+      setCategories(data.data.categories);
+    } catch (err) {
+      console.error('[Categories] load failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load categories.');
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -16,14 +23,21 @@ export default function Categories() {
   const create = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    await api.post('/categories', { name });
-    setName('');
-    load();
+    setError(null);
+    try {
+      await api.post('/categories', { name });
+      setName('');
+      load();
+    } catch (err) {
+      console.error('[Categories] create failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to create category.');
+    }
   };
 
   return (
     <div>
       <Navbar title="Categories" />
+      {error && <div className="error-text" style={{ marginBottom: 12 }}>{error}</div>}
       <form onSubmit={create} className="card" style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
         <input placeholder="New category name" value={name} onChange={(e) => setName(e.target.value)} />
         <button type="submit">Add</button>
