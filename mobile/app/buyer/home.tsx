@@ -47,6 +47,10 @@ export default function BuyerHome() {
       <Text style={styles.greeting}>Discover Artisan Crafts</Text>
       <SearchBar value={query} onChangeText={setQuery} onSubmit={search} />
 
+      <TouchableOpacity style={styles.scanBtn} onPress={() => router.push('/buyer/scan-room')}>
+        <Text style={styles.scanBtnText}>📷 Match My Space — scan a room for AI picks</Text>
+      </TouchableOpacity>
+
       <Text style={styles.sectionTitle}>AI Recommended for You</Text>
       <FlatList
         horizontal
@@ -76,5 +80,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   greeting: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: spacing.md },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
+  scanBtn: {
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.primary,
+    borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: spacing.lg,
+  },
+  scanBtnText: { color: colors.primaryDark, fontWeight: '700' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
 });
