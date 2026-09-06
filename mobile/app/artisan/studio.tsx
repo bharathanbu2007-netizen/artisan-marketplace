@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import ImageEditor from '../../components/ImageEditor';
 import * as ai from '../../services/ai';
+import { uploadImage } from '../../services/upload';
 import { colors, radius, spacing } from '../../constants/theme';
 
 /**
@@ -13,9 +14,11 @@ import { colors, radius, spacing } from '../../constants/theme';
  */
 export default function AiStudio() {
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
   const [step, setStep] = useState<'capture' | 'edit' | 'review'>('capture');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const pickImage = async (fromCamera: boolean) => {
     const permission = fromCamera
@@ -30,14 +33,22 @@ export default function AiStudio() {
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setImageUri(uri);
+      setError(null);
       setLoading(true);
       try {
-        // In production: upload `uri` to Cloudinary first, then pass the
-        // resulting secure URL to analyzeProduct. Uploading is omitted here
-        // to keep the starter kit dependency-light.
-        const { data } = await ai.analyzeProduct(uri);
+        const uploadedUrl = await uploadImage(uri);
+        setRemoteImageUrl(uploadedUrl);
+
+        const { data } = await ai.analyzeProduct(uploadedUrl);
         setAnalysis(data.data.analysis);
         setStep('edit');
+      } catch (err: any) {
+        console.error('[AiStudio] upload/analyze failed:', err);
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            'Upload failed. Check your connection and try again.'
+        );
       } finally {
         setLoading(false);
       }
@@ -46,9 +57,13 @@ export default function AiStudio() {
 
   const handleBackgroundConfirm = async (background: string) => {
     setLoading(true);
+    setError(null);
     try {
-      await ai.enhanceImage(imageUri!, background);
+      await ai.enhanceImage(remoteImageUrl || imageUri!, background);
       setStep('review');
+    } catch (err: any) {
+      console.error('[AiStudio] enhance failed:', err);
+      setError(err?.response?.data?.message || err?.message || 'Enhancement failed. Try again.');
     } finally {
       setLoading(false);
     }
@@ -58,7 +73,7 @@ export default function AiStudio() {
     router.push({
       pathname: '/artisan/create-product',
       params: {
-        imageUri: imageUri || '',
+        imageUri: remoteImageUrl || imageUri || '',
         detectedObject: analysis?.detectedObject || '',
         material: analysis?.material || '',
       },
@@ -82,6 +97,7 @@ export default function AiStudio() {
       )}
 
       {loading && <Text style={styles.loadingText}>Analyzing…</Text>}
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       {step === 'edit' && imageUri && !loading && (
         <View>
@@ -117,6 +133,7 @@ const styles = StyleSheet.create({
   secondaryBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: radius.md, padding: 16, alignItems: 'center' },
   secondaryBtnText: { color: colors.primaryDark, fontWeight: '700' },
   loadingText: { textAlign: 'center', color: colors.muted, marginVertical: spacing.lg },
+  errorText: { textAlign: 'center', color: '#B3261E', marginVertical: spacing.sm, fontWeight: '600' },
   analysisBox: { backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   analysisText: { fontSize: 13, color: colors.text },
 });

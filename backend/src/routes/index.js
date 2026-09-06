@@ -10,6 +10,7 @@ const conversationRoutes = require('./conversationRoutes');
 const aiRoutes = require('./aiRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const appRoutes = require('./appRoutes');
+const uploadRoutes = require('./uploadRoutes');
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use('/conversations', conversationRoutes);
 router.use('/ai', aiRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/app', appRoutes);
+router.use('/upload', uploadRoutes);
 
 module.exports = router;
