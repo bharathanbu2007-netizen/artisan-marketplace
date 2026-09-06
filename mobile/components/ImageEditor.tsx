@@ -4,6 +4,7 @@ import { colors, radius, spacing, backgroundOptions } from '../constants/theme';
 
 type Props = {
   imageUri: string;
+  recommendedBackground?: string;
   onConfirm: (background: string) => void;
 };
 
@@ -12,9 +13,13 @@ type Props = {
  * Editor" step. The actual pixel transform (background removal, lighting,
  * crop) happens server-side (see backend/src/services/image) — this
  * component just lets the artisan pick a look and confirm.
+ *
+ * When the AI Scene Scan has already recommended a background (based on
+ * analyzing the photo's surface/lighting), it's pre-selected here so the
+ * artisan can just confirm it or override with a different option.
  */
-export default function ImageEditor({ imageUri, onConfirm }: Props) {
-  const [selected, setSelected] = useState<string>('AI Recommended');
+export default function ImageEditor({ imageUri, recommendedBackground, onConfirm }: Props) {
+  const [selected, setSelected] = useState<string>(recommendedBackground || 'AI Recommended');
 
   return (
     <View style={styles.container}>

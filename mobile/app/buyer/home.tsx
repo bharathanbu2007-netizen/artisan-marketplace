@@ -4,12 +4,15 @@ import { router } from 'expo-router';
 import api from '../../services/api';
 import SearchBar from '../../components/SearchBar';
 import ProductCard from '../../components/ProductCard';
+import { useAuthStore } from '../../store/authStore';
+import { connectSocket, getSocket } from '../../services/socket';
 import { colors, spacing } from '../../constants/theme';
 
 export default function BuyerHome() {
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState<any[]>([]);
   const [recommended, setRecommended] = useState<any[]>([]);
+  const user = useAuthStore((s) => s.user);
 
   const loadProducts = async () => {
     const { data } = await api.get('/products', { params: { limit: 20 } });
@@ -17,7 +20,22 @@ export default function BuyerHome() {
     setRecommended(data.data.products.slice(0, 6));
   };
 
-  useEffect(() => { loadProducts(); }, []);
+  useEffect(() => {
+    loadProducts();
+
+    // Real-time: when any artisan publishes a new product, the backend emits
+    // 'product:published' over Socket.IO. Reload the list live instead of
+    // making buyers pull-to-refresh manually.
+    if (user?.id) connectSocket(user.id);
+    const socket = getSocket();
+    socket?.on('product:published', () => {
+      loadProducts();
+    });
+
+    return () => {
+      socket?.off('product:published');
+    };
+  }, [user?.id]);
 
   const search = async () => {
     const { data } = await api.get('/products', { params: { q: query, limit: 20 } });

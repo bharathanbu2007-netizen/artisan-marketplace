@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
+import { connectSocket, getSocket } from '../services/socket';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -10,7 +11,17 @@ export default function Products() {
     setProducts(data.data.products);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+
+    // Real-time: refresh the table the moment any artisan publishes a
+    // product, instead of requiring a manual page reload.
+    connectSocket();
+    const socket = getSocket();
+    socket?.on('product:published', () => load());
+
+    return () => socket?.off('product:published');
+  }, []);
 
   return (
     <div>

@@ -16,6 +16,7 @@ export default function AiStudio() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [sceneSuggestion, setSceneSuggestion] = useState<any>(null);
   const [step, setStep] = useState<'capture' | 'edit' | 'review'>('capture');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +40,12 @@ export default function AiStudio() {
         const uploadedUrl = await uploadImage(uri);
         setRemoteImageUrl(uploadedUrl);
 
-        const { data } = await ai.analyzeProduct(uploadedUrl);
-        setAnalysis(data.data.analysis);
+        const [{ data: productData }, { data: sceneData }] = await Promise.all([
+          ai.analyzeProduct(uploadedUrl),
+          ai.analyzeScene(uploadedUrl),
+        ]);
+        setAnalysis(productData.data.analysis);
+        setSceneSuggestion(sceneData.data.scene ?? sceneData.data);
         setStep('edit');
       } catch (err: any) {
         console.error('[AiStudio] upload/analyze failed:', err);
@@ -108,7 +113,17 @@ export default function AiStudio() {
               <Text style={styles.analysisText}>Confidence: {Math.round(analysis.confidence * 100)}%</Text>
             </View>
           )}
-          <ImageEditor imageUri={imageUri} onConfirm={handleBackgroundConfirm} />
+          {sceneSuggestion && (
+            <View style={styles.analysisBox}>
+              <Text style={styles.analysisText}>💡 AI Background Suggestion</Text>
+              <Text style={styles.analysisText}>{sceneSuggestion.suggestion}</Text>
+            </View>
+          )}
+          <ImageEditor
+            imageUri={imageUri}
+            recommendedBackground={sceneSuggestion?.recommendedBackground}
+            onConfirm={handleBackgroundConfirm}
+          />
         </View>
       )}
 

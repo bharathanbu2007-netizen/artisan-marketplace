@@ -10,6 +10,7 @@ import { colors, radius, spacing } from '../../constants/theme';
 export default function ConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const [text, setText] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const { messagesByConversation, fetchMessages, sendMessage, receiveMessage } = useChatStore();
   const user = useAuthStore((s) => s.user);
   const listRef = useRef<FlatList>(null);
@@ -29,13 +30,17 @@ export default function ConversationScreen() {
 
   const handleSend = () => {
     if (!text.trim() || !user) return;
-    sendMessage({
-      conversationId,
-      senderId: user.id,
-      receiverId: '', // resolved server-side from the conversation participants
-      text,
-      type: 'text',
-    });
+    setError(null);
+    sendMessage(
+      {
+        conversationId,
+        senderId: user.id,
+        receiverId: '', // resolved server-side from the conversation participants
+        text,
+        type: 'text',
+      },
+      (err) => setError(err)
+    );
     setText('');
   };
 
@@ -50,6 +55,7 @@ export default function ConversationScreen() {
         )}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
       />
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
@@ -68,6 +74,7 @@ export default function ConversationScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  errorText: { textAlign: 'center', color: '#B3261E', fontWeight: '600', paddingVertical: spacing.xs },
   inputRow: { flexDirection: 'row', padding: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, alignItems: 'center' },
   input: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, height: 44, marginRight: spacing.sm },
   sendBtn: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingHorizontal: 18, height: 44, alignItems: 'center', justifyContent: 'center' },

@@ -17,7 +17,7 @@ type ChatState = {
   messagesByConversation: Record<string, Message[]>;
   fetchConversations: () => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (payload: Message) => void;
+  sendMessage: (payload: Message, onError?: (err: string) => void) => void;
   receiveMessage: (message: Message) => void;
 };
 
@@ -37,11 +37,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }));
   },
 
-  sendMessage: (payload) => {
+  sendMessage: (payload: Message, onError?: (err: string) => void) => {
     const socket = getSocket();
-    socket?.emit('message:send', payload, (ack: { success: boolean; message?: Message }) => {
+    socket?.emit('message:send', payload, (ack: { success: boolean; message?: Message; error?: string }) => {
       if (ack?.success && ack.message) {
         get().receiveMessage(ack.message);
+      } else {
+        console.error('[chatStore] sendMessage failed:', ack?.error);
+        onError?.(ack?.error || 'Message failed to send');
       }
     });
   },
