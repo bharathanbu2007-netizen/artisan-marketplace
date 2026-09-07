@@ -6,6 +6,10 @@ cloudinary.config({
   api_key: env.CLOUDINARY_API_KEY,
   api_secret: env.CLOUDINARY_API_SECRET,
 });
+console.log(
+  `[cloudinary] cloud_name=u5zpkspk api_key=511185895335466 api_secret_length=JfTo2_kS41VUj29kC7v7SwLe9iI
+
+);
 
 /**
  * Upload a base64 or file-path image to Cloudinary under the artisan-marketplace folder.
