@@ -6,9 +6,10 @@ cloudinary.config({
   api_key: env.CLOUDINARY_API_KEY,
   api_secret: env.CLOUDINARY_API_SECRET,
 });
-console.log(
-  `[cloudinary] cloud_name=u5zpkspk api_key=511185895335466 api_secret_length=JfTo2_kS41VUj29kC7v7SwLe9iI
 
+// TEMP DEBUG — safe to leave briefly, never logs the actual secret value.
+console.log(
+  `[cloudinary] cloud_name=${env.CLOUDINARY_CLOUD_NAME} api_key=${env.CLOUDINARY_API_KEY} api_secret_length=${env.CLOUDINARY_API_SECRET?.length}`
 );
 
 /**
