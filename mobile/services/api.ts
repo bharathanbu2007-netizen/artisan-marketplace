@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_URL } from '../constants/theme';
 import { getToken } from './auth';
 
-const api = axios.create({ baseURL: API_URL, timeout: 15000 });
+const api = axios.create({ baseURL: API_URL, timeout: 45000 });
 
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
