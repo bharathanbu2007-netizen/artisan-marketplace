@@ -9,29 +9,21 @@
     "splash": {
       "backgroundColor": "#F5E9DA"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Record a voice note describing your product so the AI Cataloger can write the listing for you."
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#F5E9DA"
-      },
-      "package": "com.artisanmarketplace.app"
+      "adaptiveIcon": { "backgroundColor": "#F5E9DA" },
+      "package": "com.artisanmarketplace.app",
+      "permissions": ["RECORD_AUDIO"]
     },
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "extra": {
-      "apiUrl": "http://localhost:5000/api",
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "8f4d63a8-ddf9-4375-b071-66999be480ce"
-      }
+      "apiUrl": "http://localhost:5000/api"
     }
   }
 }
